@@ -1,9 +1,9 @@
 import pytest
 from sklearn.pipeline import Pipeline
 
-from app.config import MODEL_PATH, TRAIN_CSV
+from app.config import TRAIN_CSV
 from app.data_loader import load_train_val
-from app.model import evaluate, model_exists, predict, train_model
+from app.model import evaluate, load_model, model_exists, predict, save_model, train_model
 
 
 @pytest.fixture(scope="module")
@@ -42,19 +42,11 @@ def test_evaluate_has_report(trained_pipeline, val_data):
     assert "yes" in metrics["classification_report"]
 
 
-def test_save_and_load_model(trained_pipeline, tmp_path):
-    # Save to a temp location
-    import joblib
-
-    tmp_model = tmp_path / "test_model.joblib"
-    joblib.dump(trained_pipeline, tmp_model)
-    loaded = joblib.load(tmp_model)
+def test_save_and_load_model(trained_pipeline):
+    save_model(trained_pipeline)
+    assert model_exists()
+    loaded = load_model()
     assert isinstance(loaded, Pipeline)
-
-
-def test_model_exists():
-    # After training, model should exist
-    assert model_exists() is True or MODEL_PATH.exists()
 
 
 def test_predict_returns_correct_keys(trained_pipeline, val_data):
